@@ -12,24 +12,45 @@
 
 ## 🚀 วิธีใช้งาน
 
-### ใช้งานออนไลน์ (แนะนำ) — GitHub Pages
+### 1) ใช้งานออนไลน์ (แนะนำ — ไม่ต้องติดตั้งอะไร)
 
-เปิด GitHub Pages ครั้งเดียว: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` / `(root)` → Save**
-
-จากนั้นเข้าใช้ที่ `https://kitti-noo.github.io/MyDay/` แล้วติดตั้งเป็นแอป:
+เปิด 👉 **https://kitti-noo.github.io/MyDay/** แล้วติดตั้งเป็นแอปได้เลย:
 
 - 📱 **iPhone/iPad (Safari):** ปุ่มแชร์ → "เพิ่มไปยังหน้าจอโฮม"
 - 🤖 **Android (Chrome):** เมนู ⋮ → "ติดตั้งแอป"
 - 💻 **Chrome/Edge:** ไอคอนติดตั้งที่แถบที่อยู่ หรือ ตั้งค่า → "📲 ติดตั้งแอป"
 
-### รันในเครื่อง
+> GitHub Pages เปิดไว้แล้ว (Settings → Pages → Deploy from a branch → `main` / `(root)`) — push ขึ้น `main` เมื่อไหร่ เว็บอัปเดตเองภายใน ~1 นาที
+
+### 2) รันในเครื่อง (สำหรับพัฒนา/แก้ไข)
+
+แอปนี้เป็น **static files ล้วน** (HTML/CSS/JS) — ไม่มี build, ไม่มี dependency, ไม่ต้อง `npm install`
+ที่ต้องใช้ local server เพราะ **Service Worker (ออฟไลน์/ติดตั้งแอป) ทำงานได้เฉพาะผ่าน `http://localhost` หรือ `https://`** เท่านั้น ไม่ทำงานผ่าน `file://`
+
+**ขั้นตอน**
 
 ```bash
-python3 -m http.server 8000
-# แล้วเปิด http://localhost:8000
+# 1. Clone โปรเจกต์
+git clone https://github.com/kitti-noo/MyDay.git
+cd MyDay
+
+# 2. รัน static server ตัวไหนก็ได้ (เลือกตามที่เครื่องมี)
 ```
 
-> เปิด `index.html` ตรงๆ (file://) ก็ใช้งานได้ แต่จะติดตั้งเป็นแอป/ใช้ออฟไลน์ไม่ได้ เพราะ Service Worker ต้องรันผ่าน http(s)
+| เครื่องมือ | ต้องมี | คำสั่ง | เปิดที่ |
+|-----------|--------|--------|--------|
+| **VS Code Live Server** | ส่วนขยาย [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) | คลิกขวา `index.html` → *Open with Live Server* | http://127.0.0.1:5500 |
+| **Node.js** | Node 18+ | `npx serve .` | http://localhost:3000 |
+| **Python** | Python 3 (macOS/Linux มีติดมาแล้ว) | `python3 -m http.server 8000` | http://localhost:8000 |
+| **PHP** | PHP | `php -S localhost:8000` | http://localhost:8000 |
+
+**3. เปิด URL ในเบราว์เซอร์** — เสร็จแล้ว 🎉
+
+> 💡 **ไม่อยากลงอะไรเลย?** ดับเบิลคลิก `index.html` เปิดตรงๆ ได้ ทุกฟีเจอร์ใช้งานได้ปกติ ยกเว้น *ติดตั้งเป็นแอป* และ *ออฟไลน์*
+>
+> ⚠️ ข้อมูลเก็บแยกตาม URL — ข้อมูลที่ `localhost:8000`, `file://` และ GitHub Pages **ไม่ใช่ชุดเดียวกัน** ใช้ Export/Import ในหน้าตั้งค่าเพื่อย้ายข้อมูล
+>
+> 🔄 ระหว่างพัฒนา ถ้าแก้โค้ดแล้วไม่เห็นผล: DevTools → Application → Service Workers → ติ๊ก *Update on reload* (หรือ hard refresh `Ctrl/⌘ + Shift + R`)
 
 ## 📱 รองรับ
 
