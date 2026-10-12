@@ -1,0 +1,24 @@
+{
+  "name": "MyDay — จัดการชีวิตประจำวัน",
+  "short_name": "MyDay",
+  "description": "รายจ่าย นิสัย To-Do และบันทึกย่อ ในแอปเดียว ใช้งานออฟไลน์ได้",
+  "id": "./",
+  "start_url": "./#dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f0f0f5",
+  "theme_color": "#6c5ce7",
+  "lang": "th",
+  "categories": ["productivity", "finance", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "เพิ่มรายจ่าย", "short_name": "รายจ่าย", "url": "./#expenses", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "เช็คนิสัย", "short_name": "นิสัย", "url": "./#habits", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "To-Do", "short_name": "To-Do", "url": "./#todos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

@@ -1,16 +1,30 @@
-// storage.js — จัดการ localStorage (Generic CRUD)
+// storage.js — จัดการ localStorage (Generic CRUD) + ฟังก์ชันช่วยที่ใช้ร่วมกัน
 // เก็บข้อมูลทั้งหมดใน key เดียวชื่อ "myday_data"
 
 const STORAGE_KEY = 'myday_data';
 
-// โครงสร้างข้อมูลเริ่มต้น
-const DEFAULT_DATA = {
-  expenses: [],
-  habits: [],
-  todos: [],
-  notes: [],
-  meta: { createdAt: null, lastOpened: null }
-};
+function createDefaultData() {
+  const now = new Date().toISOString();
+  return {
+    expenses: [],
+    habits: [],
+    todos: [],
+    notes: [],
+    meta: { createdAt: now, lastOpened: now }
+  };
+}
+
+function normalizeData(parsed) {
+  const base = createDefaultData();
+  const arr = v => (Array.isArray(v) ? v : []);
+  return {
+    expenses: arr(parsed.expenses),
+    habits: arr(parsed.habits).map(h => ({ ...h, log: h.log && typeof h.log === 'object' ? h.log : {} })),
+    todos: arr(parsed.todos),
+    notes: arr(parsed.notes),
+    meta: parsed.meta && typeof parsed.meta === 'object' ? { ...base.meta, ...parsed.meta } : base.meta
+  };
+}
 
 /**
  * อ่านข้อมูลทั้งหมดจาก localStorage
@@ -19,24 +33,14 @@ function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      const data = { ...DEFAULT_DATA };
-      data.meta.createdAt = new Date().toISOString();
-      data.meta.lastOpened = new Date().toISOString();
+      const data = createDefaultData();
       saveData(data);
       return data;
     }
-    const parsed = JSON.parse(raw);
-    // ตรวจสอบให้แน่ใจว่ามี key ครบ
-    return {
-      expenses: parsed.expenses || [],
-      habits: parsed.habits || [],
-      todos: parsed.todos || [],
-      notes: parsed.notes || [],
-      meta: parsed.meta || { createdAt: new Date().toISOString(), lastOpened: new Date().toISOString() }
-    };
+    return normalizeData(JSON.parse(raw));
   } catch (e) {
     console.error('โหลดข้อมูลไม่ได้:', e);
-    return { ...DEFAULT_DATA };
+    return createDefaultData();
   }
 }
 
@@ -50,6 +54,7 @@ function saveData(data) {
     return true;
   } catch (e) {
     console.error('บันทึกข้อมูลไม่ได้:', e);
+    if (window.showToast) window.showToast('บันทึกไม่สำเร็จ ❌ พื้นที่เก็บข้อมูลอาจเต็ม');
     return false;
   }
 }
@@ -58,7 +63,7 @@ function saveData(data) {
  * สร้าง ID ไม่ซ้ำ
  */
 function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
 /**
@@ -72,8 +77,7 @@ function clearAllData() {
  * Export ข้อมูลเป็น JSON string
  */
 function exportData() {
-  const data = loadData();
-  return JSON.stringify(data, null, 2);
+  return JSON.stringify(loadData(), null, 2);
 }
 
 /**
@@ -83,26 +87,55 @@ function exportData() {
 function importData(jsonString) {
   try {
     const parsed = JSON.parse(jsonString);
-    if (!parsed.expenses && !parsed.habits && !parsed.todos && !parsed.notes) {
+    if (!parsed || typeof parsed !== 'object' ||
+        !['expenses', 'habits', 'todos', 'notes'].some(k => Array.isArray(parsed[k]))) {
       throw new Error('ไม่ใช่ไฟล์ข้อมูลที่ถูกต้อง');
     }
-    const data = {
-      expenses: parsed.expenses || [],
-      habits: parsed.habits || [],
-      todos: parsed.todos || [],
-      notes: parsed.notes || [],
-      meta: parsed.meta || { createdAt: new Date().toISOString(), lastOpened: new Date().toISOString() }
-    };
-    saveData(data);
-    return true;
+    return saveData(normalizeData(parsed));
   } catch (e) {
     console.error('Import ไม่สำเร็จ:', e);
     return false;
   }
 }
 
-// Export ให้ใช้ในไฟล์อื่น (global)
-window.Storage = {
+// ====== Date helpers (ใช้เวลาท้องถิ่น ไม่ใช่ UTC) ======
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function todayStr() {
+  return toDateStr(new Date());
+}
+
+function parseDateStr(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function escapeHtml(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatMoney(n) {
+  return Number(n || 0).toLocaleString('th-TH', { maximumFractionDigits: 2 });
+}
+
+// ใช้ชื่อ Store เพื่อไม่ทับ window.Storage ของเบราว์เซอร์
+window.Store = {
   loadData,
   saveData,
   genId,
@@ -111,3 +144,9 @@ window.Storage = {
   importData,
   STORAGE_KEY
 };
+window.toDateStr = toDateStr;
+window.todayStr = todayStr;
+window.parseDateStr = parseDateStr;
+window.addDays = addDays;
+window.escapeHtml = escapeHtml;
+window.formatMoney = formatMoney;

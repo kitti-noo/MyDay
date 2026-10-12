@@ -2,20 +2,40 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#6c5ce7">
-  <meta name="description" content="MyDay — แอปจัดการชีวิตประจำวัน: รายจ่าย นิสัย To-Do บันทึกย่อ">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="MyDay — แอปจัดการชีวิตประจำวัน: รายจ่าย นิสัย To-Do บันทึกย่อ ใช้งานออฟไลน์ได้">
   <title>MyDay — จัดการชีวิตประจำวัน</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗓️</text></svg>">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/favicon-64.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="MyDay">
+
+  <!-- Apply saved theme before first paint to avoid flash -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('myday_theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Navigation -->
-  <nav id="nav" class="nav"></nav>
+  <nav id="nav" class="nav" aria-label="เมนูหลัก"></nav>
 
-  <!-- Main Content -->
-  <main id="app" class="app-main"></main>
+  <main id="app" class="app-main">
+    <noscript><p class="empty-state">MyDay ต้องเปิดใช้งาน JavaScript</p></noscript>
+  </main>
 
   <!-- Scripts (load order matters: storage first, then modules, then app) -->
   <script src="js/storage.js"></script>

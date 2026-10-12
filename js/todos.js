@@ -12,45 +12,56 @@ const TODO_STATUSES = [
   { id: 'done', label: 'เสร็จแล้ว' }
 ];
 
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
 const Todos = {
   add(title, priority = 'medium') {
-    const data = Storage.loadData();
+    const trimmed = title.trim();
+    if (!trimmed) return null;
+    const data = Store.loadData();
     const todo = {
-      id: Storage.genId(),
-      title: title.trim(),
-      priority,
+      id: Store.genId(),
+      title: trimmed,
+      priority: PRIORITY_ORDER[priority] !== undefined ? priority : 'medium',
       status: 'todo',
       createdAt: new Date().toISOString()
     };
     data.todos.push(todo);
-    Storage.saveData(data);
+    Store.saveData(data);
     return todo;
   },
 
   remove(id) {
-    const data = Storage.loadData();
+    const data = Store.loadData();
     data.todos = data.todos.filter(t => t.id !== id);
-    Storage.saveData(data);
+    Store.saveData(data);
+  },
+
+  clearDone() {
+    const data = Store.loadData();
+    const before = data.todos.length;
+    data.todos = data.todos.filter(t => t.status !== 'done');
+    Store.saveData(data);
+    return before - data.todos.length;
   },
 
   setStatus(id, status) {
-    const data = Storage.loadData();
+    const data = Store.loadData();
     const todo = data.todos.find(t => t.id === id);
     if (todo) {
       todo.status = status;
       if (status === 'done') todo.completedAt = new Date().toISOString();
-      Storage.saveData(data);
+      else delete todo.completedAt;
+      Store.saveData(data);
     }
   },
 
   getAll() {
-    const data = Storage.loadData();
+    const data = Store.loadData();
     return [...data.todos].sort((a, b) => {
-      // เรียง priority: high > medium > low
-      const pOrder = { high: 0, medium: 1, low: 2 };
-      const pd = pOrder[a.priority] - pOrder[b.priority];
+      const pd = (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
       if (pd !== 0) return pd;
-      return b.createdAt.localeCompare(a.createdAt);
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
     });
   },
 
@@ -76,36 +87,41 @@ function getPriorityInfo(id) {
 function renderTodosPage() {
   const stats = Todos.getStats();
   const priorityOptions = TODO_PRIORITIES.map(p =>
-    `<option value="${p.id}">${p.label}</option>`
+    `<option value="${p.id}" ${p.id === 'medium' ? 'selected' : ''}>${p.label}</option>`
   ).join('');
 
-  const columns = TODO_STATUSES.map(status => {
+  const columns = TODO_STATUSES.map((status, idx) => {
     const items = Todos.getByStatus(status.id);
+    const prevStatus = TODO_STATUSES[idx - 1];
+    const nextStatus = TODO_STATUSES[idx + 1];
     const itemHtml = items.length === 0
       ? '<div class="kanban-empty">ไม่มีรายการ</div>'
       : items.map(t => {
           const p = getPriorityInfo(t.priority);
-          const nextStatusIdx = TODO_STATUSES.findIndex(s => s.id === status.id);
-          const nextStatus = TODO_STATUSES[nextStatusIdx + 1];
           return `
-            <div class="todo-card" style="border-left:4px solid ${p.color}">
+            <div class="todo-card ${status.id === 'done' ? 'todo-done' : ''}" style="border-left:4px solid ${p.color}">
               <div class="todo-title">${escapeHtml(t.title)}</div>
               <div class="todo-meta">
                 <span class="priority-tag" style="background:${p.color}22;color:${p.color}">${p.label}</span>
                 <span class="todo-actions">
-                  ${nextStatus ? `<button class="btn-mini" onclick="Todos.setStatus('${t.id}','${nextStatus.id}'); refreshPage()">→ ${nextStatus.label}</button>` : ''}
-                  <button class="btn-mini btn-danger-text" onclick="Todos.remove('${t.id}'); refreshPage()">ลบ</button>
+                  ${prevStatus ? `<button class="btn-mini" onclick="handleTodoStatus('${t.id}','${prevStatus.id}')" title="ย้ายกลับไป ${prevStatus.label}" aria-label="ย้ายกลับไป ${prevStatus.label}">←</button>` : ''}
+                  ${nextStatus ? `<button class="btn-mini" onclick="handleTodoStatus('${t.id}','${nextStatus.id}')">→ ${nextStatus.label}</button>` : ''}
+                  <button class="btn-mini btn-danger-text" onclick="handleRemoveTodo('${t.id}')">ลบ</button>
                 </span>
               </div>
             </div>
           `;
         }).join('');
 
+    const clearBtn = status.id === 'done' && items.length > 0
+      ? '<button class="btn-mini btn-danger-text" onclick="handleClearDoneTodos()">ล้าง</button>'
+      : '';
+
     return `
       <div class="kanban-col">
         <div class="kanban-header">
           <span>${status.label}</span>
-          <span class="kanban-count">${items.length}</span>
+          <span class="kanban-header-right">${clearBtn}<span class="kanban-count">${items.length}</span></span>
         </div>
         <div class="kanban-body">${itemHtml}</div>
       </div>
@@ -127,8 +143,8 @@ function renderTodosPage() {
     <div class="card">
       <h3>➕ เพิ่มสิ่งที่ต้องทำ</h3>
       <form onsubmit="return handleAddTodo(event)" class="todo-form">
-        <input type="text" id="todo-title" placeholder="อะไรที่ต้องทำ?" required>
-        <select id="todo-priority">
+        <input type="text" id="todo-title" placeholder="อะไรที่ต้องทำ?" required maxlength="200" aria-label="สิ่งที่ต้องทำ">
+        <select id="todo-priority" aria-label="ความสำคัญ">
           ${priorityOptions}
         </select>
         <button type="submit" class="btn btn-primary">เพิ่ม</button>
@@ -145,18 +161,38 @@ function handleAddTodo(e) {
   e.preventDefault();
   const title = document.getElementById('todo-title').value;
   const priority = document.getElementById('todo-priority').value;
-  Todos.add(title, priority);
+  if (!Todos.add(title, priority)) {
+    showToast('กรุณาใส่สิ่งที่ต้องทำ');
+    return false;
+  }
   refreshPage();
+  document.getElementById('todo-title')?.focus();
   return false;
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+function handleTodoStatus(id, status) {
+  Todos.setStatus(id, status);
+  refreshPage();
+  if (status === 'done') showToast('เยี่ยม! เสร็จไปอีกงาน 🎉');
+}
+
+function handleRemoveTodo(id) {
+  if (!confirm('ลบงานนี้?')) return;
+  Todos.remove(id);
+  refreshPage();
+}
+
+function handleClearDoneTodos() {
+  if (!confirm('ล้างงานที่เสร็จแล้วทั้งหมด?')) return;
+  const n = Todos.clearDone();
+  refreshPage();
+  showToast(`ล้างงานที่เสร็จแล้ว ${n} รายการ`);
 }
 
 window.Todos = Todos;
 window.renderTodosPage = renderTodosPage;
 window.handleAddTodo = handleAddTodo;
-window.escapeHtml = escapeHtml;
+window.handleTodoStatus = handleTodoStatus;
+window.handleRemoveTodo = handleRemoveTodo;
+window.handleClearDoneTodos = handleClearDoneTodos;
+window.getPriorityInfo = getPriorityInfo;
