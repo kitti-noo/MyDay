@@ -351,10 +351,25 @@ function refreshPage() {
 }
 
 // ====== Build Navigation ======
+function toggleThemeQuick() {
+  const current = getTheme();
+  const next = current === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+  showToast(`เปลี่ยนเป็นโหมด ${next === 'dark' ? '🌙 มืด' : '☀️ สว่าง'}`);
+}
+
 function buildNav() {
   const nav = document.getElementById('nav');
+  const currentTheme = getTheme();
+  const themeIcon = currentTheme === 'dark' ? '☀️' : '🌙';
+
   nav.innerHTML = `
-    <div class="nav-brand">🗓️ MyDay</div>
+    <div class="nav-header">
+      <div class="nav-brand">🗓️ MyDay</div>
+      <button class="btn-theme-toggle" onclick="toggleThemeQuick()" title="สลับธีม" aria-label="สลับธีม">
+        <span class="theme-icon">${themeIcon}</span>
+      </button>
+    </div>
     ${PAGES.map(p =>
       `<a class="nav-item" data-page="${p.id}" href="#${p.id}">
         <span class="nav-icon" aria-hidden="true">${p.icon}</span>

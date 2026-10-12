@@ -37,12 +37,12 @@ cd MyDay
 # 2. รัน static server ตัวไหนก็ได้ (เลือกตามที่เครื่องมี)
 ```
 
-| เครื่องมือ | ต้องมี | คำสั่ง | เปิดที่ |
-|-----------|--------|--------|--------|
-| **VS Code Live Server** | ส่วนขยาย [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) | คลิกขวา `index.html` → *Open with Live Server* | http://127.0.0.1:5500 |
-| **Node.js** | Node 18+ | `npx serve .` | http://localhost:3000 |
-| **Python** | Python 3 (macOS/Linux มีติดมาแล้ว) | `python3 -m http.server 8000` | http://localhost:8000 |
-| **PHP** | PHP | `php -S localhost:8000` | http://localhost:8000 |
+| เครื่องมือ          | ต้องมี                                                                                            | คำสั่ง                                              | เปิดที่        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------- |
+| **VS Code Live Server** | ส่วนขยาย[Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) | คลิกขวา`index.html` → *Open with Live Server* | http://127.0.0.1:5500 |
+| **Node.js**             | Node 18+                                                                                                | `npx serve .`                                           | http://localhost:3000 |
+| **Python**              | Python 3 (macOS/Linux มีติดมาแล้ว)                                                           | `python3 -m http.server 8000`                           | http://localhost:8000 |
+| **PHP**                 | PHP                                                                                                     | `php -S localhost:8000`                                 | http://localhost:8000 |
 
 **3. เปิด URL ในเบราว์เซอร์** — เสร็จแล้ว 🎉
 
@@ -86,11 +86,11 @@ gh api -X POST repos/<username>/<repo>/pages -f "source[branch]=main" -f "source
 
 ### ทางเลือกอื่น (ฟรีเหมือนกัน)
 
-| บริการ | วิธี |
-|--------|------|
-| **Netlify** | ลากโฟลเดอร์ไปวางที่ [app.netlify.com/drop](https://app.netlify.com/drop) หรือเชื่อม GitHub repo (Build command: เว้นว่าง, Publish directory: `.`) |
-| **Vercel** | [vercel.com/new](https://vercel.com/new) → Import repo → Framework: *Other* → Deploy |
-| **Cloudflare Pages** | Dashboard → Workers & Pages → Create → Pages → เชื่อม repo (Build command: เว้นว่าง, Output: `/`) |
+| บริการ               | วิธี                                                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Netlify**          | ลากโฟลเดอร์ไปวางที่[app.netlify.com/drop](https://app.netlify.com/drop) หรือเชื่อม GitHub repo (Build command: เว้นว่าง, Publish directory: `.`) |
+| **Vercel**           | [vercel.com/new](https://vercel.com/new) → Import repo → Framework: *Other* → Deploy                                                                                               |
+| **Cloudflare Pages** | Dashboard → Workers & Pages → Create → Pages → เชื่อม repo (Build command: เว้นว่าง, Output:`/`)                                                                   |
 
 > ใช้โดเมนของตัวเองได้ทุกบริการ (GitHub Pages: Settings → Pages → Custom domain)
 
