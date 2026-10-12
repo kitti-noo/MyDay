@@ -52,6 +52,48 @@ cd MyDay
 >
 > 🔄 ระหว่างพัฒนา ถ้าแก้โค้ดแล้วไม่เห็นผล: DevTools → Application → Service Workers → ติ๊ก *Update on reload* (หรือ hard refresh `Ctrl/⌘ + Shift + R`)
 
+## 🌐 วิธี Publish
+
+แอปเป็น static files ล้วน — เอาโฟลเดอร์นี้ไปวางบนเว็บโฮสติ้งไหนก็ได้ที่เป็น **HTTPS** (จำเป็นสำหรับ PWA)
+
+### GitHub Pages (ใช้อยู่ตอนนี้ — ฟรี)
+
+**ตั้งค่าครั้งแรก (ทำไว้แล้ว)**
+
+1. Push โค้ดขึ้น GitHub (repo ต้องเป็น Public หรือใช้ GitHub Pro สำหรับ Private)
+2. ไปที่ repo → **Settings → Pages**
+3. **Source:** `Deploy from a branch` → **Branch:** `main` / `(root)` → **Save**
+4. รอ ~1 นาที แอปจะอยู่ที่ `https://<username>.github.io/<repo>/`
+
+หรือใช้คำสั่ง (ต้องมี [GitHub CLI](https://cli.github.com/)):
+
+```bash
+gh api -X POST repos/<username>/<repo>/pages -f "source[branch]=main" -f "source[path]=/"
+```
+
+**อัปเดตเวอร์ชันใหม่ (ทุกครั้งที่แก้โค้ด)**
+
+1. เปลี่ยน `CACHE_VERSION` ใน `sw.js` (เช่น `myday-v1.1.0` → `myday-v1.1.1`) และ `APP_VERSION` ใน `js/app.js`
+   — ถ้าไม่เปลี่ยน คนที่ติดตั้งแอปไว้จะยังเห็นเวอร์ชันเก่าจากแคช
+2. Commit แล้ว push:
+   ```bash
+   git add -A
+   git commit -m "อธิบายสิ่งที่แก้"
+   git push origin main
+   ```
+3. GitHub Pages deploy ให้อัตโนมัติ ดูสถานะได้ที่แท็บ **Actions** หรือ `gh api repos/<username>/<repo>/pages --jq .status` (ได้ `built` = เสร็จ)
+4. ผู้ใช้จะได้เวอร์ชันใหม่เมื่อเปิดแอปครั้งถัดไป (แอปจะแจ้ง "มีเวอร์ชันใหม่")
+
+### ทางเลือกอื่น (ฟรีเหมือนกัน)
+
+| บริการ | วิธี |
+|--------|------|
+| **Netlify** | ลากโฟลเดอร์ไปวางที่ [app.netlify.com/drop](https://app.netlify.com/drop) หรือเชื่อม GitHub repo (Build command: เว้นว่าง, Publish directory: `.`) |
+| **Vercel** | [vercel.com/new](https://vercel.com/new) → Import repo → Framework: *Other* → Deploy |
+| **Cloudflare Pages** | Dashboard → Workers & Pages → Create → Pages → เชื่อม repo (Build command: เว้นว่าง, Output: `/`) |
+
+> ใช้โดเมนของตัวเองได้ทุกบริการ (GitHub Pages: Settings → Pages → Custom domain)
+
 ## 📱 รองรับ
 
 - มือถือ (เมนูด้านล่าง รองรับ notch / safe area)
